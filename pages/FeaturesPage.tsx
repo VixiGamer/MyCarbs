@@ -77,6 +77,23 @@ const FeaturesPage: React.FC = () => {
             />
         </div>
 
+        <div className="mt-12 mb-12 p-8 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
+            <div className="flex flex-col md:flex-row items-center gap-8">
+                <div className="w-24 h-24 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-4xl">
+                    👨‍💻
+                </div>
+                <div className="flex-1 text-center md:text-left">
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">About the Creator</h2>
+                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                        Hi, I'm <span className="font-bold text-slate-900 dark:text-white">Viggo Ponturo Nygaard</span>. 
+                        I'm a student and a Type 1 Diabetic. I built MyCarbs to solve my own daily challenges 
+                        with calculating carbohydrates and insulin dosages. My goal is to make life a little bit easier 
+                        for everyone living with diabetes.
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <div className="mt-12 p-6 bg-primary-600 rounded-3xl text-center text-white shadow-xl">
             <h2 className="text-2xl font-bold mb-4">Ready to start?</h2>
             <Link to="/auth" className="inline-block bg-white text-primary-700 px-8 py-3 rounded-xl font-bold hover:bg-blue-50 transition-colors">

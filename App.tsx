@@ -34,9 +34,11 @@ interface AppContextType {
   foods: Food[];
   isLoading: boolean;
   login: (email: string) => Promise<void>;
+  loginAsGuest: () => Promise<void>;
   register: (email: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUserProfile: (updatedUser: User) => Promise<void>;
+  deleteAccount: () => Promise<void>;
   addFoodItem: (food: Omit<Food, 'id' | 'createdAt'>) => Promise<void>;
   updateFoodItem: (food: Food) => Promise<void>;
   toggleFoodFavorite: (id: string) => Promise<void>;
@@ -72,7 +74,7 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
 
     // 2. Accent Color Logic (Update CSS Variables)
-    const palette = COLOR_PALETTES[user.accentColor || 'blue'];
+    const palette = COLOR_PALETTES[user.accentColor || 'cyan'];
     if (palette) {
       Object.keys(palette).forEach(key => {
         root.style.setProperty(`--primary-${key}`, palette[key]);
@@ -114,6 +116,18 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   };
 
+  const loginAsGuest = async () => {
+    setIsLoading(true);
+    try {
+      const u = await mockAuthService.loginAsGuest();
+      setUser(u);
+      const foodData = await mockDataService.getFoods();
+      setFoods(foodData);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const register = async (email: string) => {
     setIsLoading(true);
     try {
@@ -145,6 +159,20 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     setUser(u);
   };
 
+  const deleteAccount = async () => {
+    setIsLoading(true);
+    try {
+      await mockAuthService.deleteAccount();
+      setUser(null);
+      setFoods([]);
+      // Reset theme
+      document.documentElement.classList.remove('dark');
+      document.documentElement.style.removeProperty('--primary-500');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const addFoodItem = async (food: Omit<Food, 'id' | 'createdAt'>) => {
     await mockDataService.addFood(food);
     const updated = await mockDataService.getFoods();
@@ -173,9 +201,11 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       foods, 
       isLoading, 
       login, 
+      loginAsGuest,
       register,
       logout, 
       updateUserProfile,
+      deleteAccount,
       addFoodItem,
       updateFoodItem,
       toggleFoodFavorite,

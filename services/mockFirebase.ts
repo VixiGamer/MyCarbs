@@ -83,7 +83,7 @@ export const mockAuthService = {
         delete parsed.customCategories;
       }
       if (!parsed.themePreference) parsed.themePreference = 'system';
-      if (!parsed.accentColor) parsed.accentColor = 'blue';
+      if (!parsed.accentColor) parsed.accentColor = 'cyan';
       if (!parsed.viewMode) parsed.viewMode = 'list'; // Default to list
       if (!parsed.customQuantities) parsed.customQuantities = [0.5, 1, 2, 3];
       return parsed;
@@ -109,12 +109,29 @@ export const mockAuthService = {
       icr: 15, // Default ratio
       categories: Object.values(FoodCategory), // Initialize with defaults so they can be edited
       themePreference: 'system',
-      accentColor: 'blue',
+      accentColor: 'cyan',
       viewMode: 'list',
       customQuantities: [0.5, 1, 2, 3]
     };
     localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(newUser));
     return newUser;
+  },
+
+  async loginAsGuest(): Promise<User> {
+    await delay(800);
+    const guestUser: User = {
+      id: 'guest_' + Math.random().toString(36).substr(2, 9),
+      email: 'guest@mycarbs.app',
+      name: 'Guest',
+      icr: 15,
+      categories: Object.values(FoodCategory),
+      themePreference: 'system',
+      accentColor: 'cyan',
+      viewMode: 'list',
+      customQuantities: [0.5, 1, 2, 3]
+    };
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(guestUser));
+    return guestUser;
   },
 
   async signOut(): Promise<void> {
@@ -126,6 +143,12 @@ export const mockAuthService = {
     await delay(500);
     localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
     return user;
+  },
+
+  async deleteAccount(): Promise<void> {
+    await delay(1000);
+    localStorage.removeItem(STORAGE_KEYS.USER);
+    localStorage.removeItem(STORAGE_KEYS.FOODS);
   }
 };
 

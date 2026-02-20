@@ -178,8 +178,10 @@ const Dashboard: React.FC = () => {
              <Wheat className="w-6 h-6" />
         </div>
         <div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white leading-none">MyCarbs</h1>
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">Diabetes Food Management</p>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white leading-none">
+              Hello {user.name || user.email.split('@')[0]}
+            </h1>
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">MyCarbs - Diabetes Food Management</p>
         </div>
       </Link>
 

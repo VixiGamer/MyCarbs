@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../App';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronRight, Eye, EyeOff, Wheat } from 'lucide-react';
+import { ChevronRight, Eye, EyeOff, Wheat, User } from 'lucide-react';
 
 const AuthPage: React.FC = () => {
-  const { login, register } = useAppContext();
+  const { login, register, loginAsGuest } = useAppContext();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -84,6 +84,15 @@ const AuthPage: React.FC = () => {
     } catch (err: any) {
         setError(err.message || 'An error occurred.');
     }
+  };
+
+  const handleGuestLogin = async () => {
+      try {
+          await loginAsGuest();
+          navigate('/dashboard');
+      } catch (err: any) {
+          setError(err.message || 'Failed to login as guest.');
+      }
   };
 
   const toggleMode = () => {
@@ -176,12 +185,26 @@ const AuthPage: React.FC = () => {
           </button>
         </form>
 
-        <div className="mt-8 text-center">
+        <div className="mt-6 flex flex-col gap-4 text-center">
           <button 
             onClick={toggleMode}
             className="text-slate-500 dark:text-slate-400 text-sm font-medium hover:text-primary-600 dark:hover:text-primary-400"
           >
             {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Log In"}
+          </button>
+
+          <div className="relative flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-200 dark:border-slate-800"></div>
+              </div>
+              <span className="relative bg-white dark:bg-slate-900 px-4 text-xs text-slate-400 uppercase">Or</span>
+          </div>
+
+          <button 
+            onClick={handleGuestLogin}
+            className="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 mt-4 mb-4"
+          >
+             <User className="w-4 h-4" /> Continue as Guest
           </button>
         </div>
 

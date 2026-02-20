@@ -1,13 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { useAppContext } from '../App';
-import { Settings, LogOut, Save, User as UserIcon, Plus, Trash2, LayoutGrid, Edit2, X, Check, Camera, Moon, Sun, Monitor, Palette, MousePointerClick, List, Wheat } from 'lucide-react';
+import { Settings, LogOut, Save, User as UserIcon, Plus, Trash2, LayoutGrid, Edit2, X, Check, Camera, Moon, Sun, Monitor, Palette, MousePointerClick, List, Wheat, Download, Upload, AlertTriangle, Database } from 'lucide-react';
 import { ThemeOption, AccentColor, ViewMode } from '../types';
 import { Link } from 'react-router-dom';
 
 const COLORS: AccentColor[] = ['blue', 'emerald', 'violet', 'rose', 'amber', 'cyan', 'teal', 'fuchsia', 'lime', 'slate'];
 
 const ProfilePage: React.FC = () => {
-  const { user, logout, updateUserProfile } = useAppContext();
+  const { user, logout, updateUserProfile, foods, addFoodItem } = useAppContext();
   
   const [icr, setIcr] = useState(user?.icr || 15);
   const [name, setName] = useState(user?.name || '');
@@ -31,6 +31,7 @@ const ProfilePage: React.FC = () => {
   const [isEditingAccount, setIsEditingAccount] = useState(false);
   const [isEditingInsulin, setIsEditingInsulin] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   if (!user) return null;
 
@@ -120,6 +121,56 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  // Export Logic
+  const handleExport = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(foods, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "mycarbs_foods.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  };
+
+  // Import Logic
+  const handleImportClick = () => {
+    importInputRef.current?.click();
+  };
+
+  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const importedFoods = JSON.parse(event.target?.result as string);
+        if (Array.isArray(importedFoods)) {
+          if (window.confirm(`Found ${importedFoods.length} foods. Import them? This will add them to your existing library.`)) {
+             let count = 0;
+             for (const food of importedFoods) {
+               if (food.name && food.carbsPer100g) {
+                 // Strip ID and createdAt to generate new ones
+                 const { id, createdAt, ...rest } = food;
+                 await addFoodItem(rest);
+                 count++;
+               }
+             }
+             alert(`Successfully imported ${count} foods.`);
+          }
+        } else {
+            alert("Invalid file format. Expected a list of foods.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Failed to parse JSON file.");
+      }
+      // Reset input
+      if (importInputRef.current) importInputRef.current.value = '';
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div className="pt-6 pb-24 px-4 min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors">
       {/* App Header */}
@@ -128,8 +179,10 @@ const ProfilePage: React.FC = () => {
              <Wheat className="w-6 h-6" />
         </div>
         <div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white leading-none">MyCarbs</h1>
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">Diabetes Food Management</p>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white leading-none">
+              Hello {user.name || user.email.split('@')[0]}
+            </h1>
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">MyCarbs - Diabetes Food Management</p>
         </div>
       </Link>
 
@@ -139,7 +192,7 @@ const ProfilePage: React.FC = () => {
       </div>
 
       {/* Grid Layout for Desktop */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         
         {/* Column 1 */}
         <div className="space-y-6">
@@ -425,11 +478,53 @@ const ProfilePage: React.FC = () => {
                 </div>
             </div>
         </div>
+      </div>
 
+      {/* Data Management Section (Moved to bottom) */}
+      <div className="mb-8 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 p-6">
+        <div className="flex items-center gap-2 mb-4">
+            <Database className="w-5 h-5 text-slate-400" />
+            <h3 className="font-bold text-slate-900 dark:text-white">Data Management</h3>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button 
+                onClick={handleExport}
+                className="flex items-center justify-center gap-2 px-4 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-medium rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+            >
+                <Download className="w-4 h-4" /> Export Foods (JSON)
+            </button>
+            
+            <div className="relative">
+                <button 
+                    onClick={handleImportClick}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-medium rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                >
+                    <Upload className="w-4 h-4" /> Import Foods (JSON)
+                </button>
+                <input 
+                    type="file" 
+                    ref={importInputRef} 
+                    onChange={handleImportFile} 
+                    accept=".json" 
+                    className="hidden" 
+                />
+            </div>
+        </div>
+
+        {/* Disclaimer */}
+        <div className="mt-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 rounded-xl flex gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+            <p className="text-sm text-amber-800 dark:text-amber-200 leading-relaxed">
+                <strong>Note:</strong> Currently, MyCarbs saves your data directly in your browser (Local Storage). 
+                We are working on cloud synchronization to securely store your foods in a database soon. 
+                Please export your data regularly to avoid losing it if you clear your browser cache.
+            </p>
+        </div>
       </div>
 
       {/* Footer - Log Out Only */}
-      <div className="flex flex-col md:flex-row md:justify-end gap-4 mt-6">
+      <div className="flex flex-col md:flex-row md:justify-end gap-4 mt-6 border-t border-slate-200 dark:border-slate-800 pt-8">
         <button 
             onClick={logout}
             className="w-full md:w-auto px-8 py-4 bg-rose-50 dark:bg-rose-900/10 text-rose-600 font-semibold rounded-xl hover:bg-rose-100 dark:hover:bg-rose-900/20 transition-colors flex items-center justify-center gap-2"
@@ -439,8 +534,8 @@ const ProfilePage: React.FC = () => {
       </div>
 
       {/* Footer Text */}
-      <footer className="mt-12 py-6 text-center text-xs text-slate-400 border-t border-slate-200 dark:border-slate-800">
-        MyCarbs v1.0
+      <footer className="mt-8 py-6 text-center text-xs text-slate-400">
+        MyCarbs v1.1
       </footer>
 
     </div>
